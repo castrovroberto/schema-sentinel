@@ -31,7 +31,7 @@
 
 ### 1.1 Purpose
 
-This Software Requirements Document (SRD) defines the functional and non-functional requirements for **SchemaSentinel**, an intelligent, automated migration engine designed to accelerate the transition from legacy database systems to Snowflake Data Cloud.
+This Software Requirements Document (SRD) defines the functional and non-functional requirements for **SchemaSentinel**, an intelligent, enterprise-grade **Data Migration Architect** platform designed to accelerate the transition from legacy database systems to Snowflake Data Cloud.
 
 ### 1.2 Scope
 
@@ -40,13 +40,19 @@ SchemaSentinel addresses the critical challenge of migrating database schemas, D
 - **Microsoft SQL Server** (T-SQL)
 - **PostgreSQL** (PL/pgSQL)
 
-To **Snowflake Data Cloud**, while maintaining referential integrity, business logic, and data type compatibility.
+To **Snowflake Data Cloud**, while maintaining referential integrity, business logic, data type compatibility, and **data integrity validation**.
+
+**Extended Capabilities (Data Migration Architect):**
+- Migration complexity assessment (Data Gravity analysis)
+- Automated validation script generation for data integrity verification
+- Change Data Capture (CDC) integration for hybrid migration pipelines
+- Intelligent data type optimization for Snowflake architecture
 
 **Out of Scope:**
-- Data migration (ETL processes)
+- Actual data extraction and loading (ETL/ELT execution)
 - Network infrastructure configuration
 - Snowflake account provisioning
-- End-to-end migration orchestration (focuses on schema translation only)
+- Physical data transport
 
 ### 1.3 Definitions and Acronyms
 
@@ -357,6 +363,128 @@ Requirements:
 
 ---
 
+### 3.9 FR-009: Data Gravity Assessment
+
+**Priority:** MEDIUM  
+**Description:** The system shall analyze schema complexity and dependency relationships to calculate "Data Gravity" scores for migration planning.
+
+**Requirements:**
+- FR-009.1: Extract table relationships via foreign key constraint analysis
+- FR-009.2: Calculate dependency depth for each table (number of related tables)
+- FR-009.3: Accept optional metadata input (row counts, table sizes) for enhanced analysis
+- FR-009.4: Generate "Data Gravity" scores based on table size × dependency count
+- FR-009.5: Identify tightly-coupled table clusters that must migrate together
+- FR-009.6: Generate complexity heatmap data for dashboard visualization
+- FR-009.7: Produce migration wave recommendations (suggested migration order)
+
+**Data Gravity Score Formula:**
+```
+Gravity Score = log10(row_count) × (1 + FK_dependency_count × 0.5) × size_factor
+```
+
+**Input:** Parsed AST, optional table statistics metadata (JSON)  
+**Output:** Data Gravity report with scores, heatmap data, and migration wave recommendations  
+**Error Handling:** Proceed with AST-only analysis if metadata unavailable
+
+---
+
+### 3.10 FR-010: Automated Validation Script Generation
+
+**Priority:** HIGH  
+**Description:** The system shall generate paired validation scripts to verify data integrity post-migration.
+
+**Requirements:**
+- FR-010.1: Generate source database validation query for each transformed table
+- FR-010.2: Generate corresponding Snowflake validation query
+- FR-010.3: Include row count validation (`SELECT COUNT(*)`)
+- FR-010.4: Include aggregate checksum validation for numeric columns (`SUM(HASH(columns))`)
+- FR-010.5: Include NULL count validation for key columns
+- FR-010.6: Generate validation as Java-executable scripts or standalone SQL
+- FR-010.7: Support batch validation script generation for all tables in migration
+- FR-010.8: Include comparison logic to detect mismatches
+
+**Validation Script Structure:**
+```java
+public class TableValidationScript {
+    public ValidationResult validateRowCount();
+    public ValidationResult validateChecksums();
+    public ValidationResult validateNullCounts();
+    public ComparisonReport compareResults(SourceResult src, TargetResult tgt);
+}
+```
+
+**Input:** Transformed table DDL, original table schema  
+**Output:** Paired validation scripts (source + target), comparison report template  
+**Error Handling:** Skip validation generation for unsupported data types with warning
+
+---
+
+### 3.11 FR-011: CDC Integration Configuration Generation
+
+**Priority:** MEDIUM  
+**Description:** The system shall generate Change Data Capture (CDC) configurations for hybrid migration pipelines.
+
+**Requirements:**
+- FR-011.1: Generate Snowpipe DDL for incremental data loading
+- FR-011.2: Generate Snowflake Stream definitions for change tracking
+- FR-011.3: Generate Snowflake Task definitions for automated processing
+- FR-011.4: Include staging table definitions for CDC landing zones
+- FR-011.5: Generate merge statements for applying changes to target tables
+- FR-011.6: Support configurable CDC frequency (near-real-time, hourly, daily)
+- FR-011.7: Include error handling and dead-letter queue configurations
+
+**CDC Configuration Output:**
+```sql
+-- Snowpipe Definition
+CREATE PIPE {schema}.{table}_PIPE AS
+COPY INTO {staging_table} FROM @{stage_name}/{path};
+
+-- Stream Definition  
+CREATE STREAM {schema}.{table}_STREAM ON TABLE {staging_table};
+
+-- Task Definition
+CREATE TASK {schema}.{table}_MERGE_TASK
+  WAREHOUSE = {warehouse}
+  SCHEDULE = 'USING CRON 0 * * * * UTC'
+AS
+  MERGE INTO {target_table} t USING {table}_STREAM s ON ...;
+```
+
+**Input:** Transformed table DDL, migration configuration  
+**Output:** Snowpipe DDL, Stream/Task definitions, merge statements  
+**Error Handling:** Generate CDC stubs with manual configuration notes for complex scenarios
+
+---
+
+### 3.12 FR-012: Intelligent Data Type Optimization
+
+**Priority:** MEDIUM  
+**Description:** The system shall optimize data type mappings and suggest Snowflake-specific performance enhancements.
+
+**Requirements:**
+- FR-012.1: Analyze actual data distribution when metadata provided
+- FR-012.2: Suggest optimal VARCHAR lengths based on max observed values
+- FR-012.3: Recommend NUMBER precision reduction where appropriate
+- FR-012.4: Identify candidates for VARIANT type (semi-structured data patterns)
+- FR-012.5: Parse WHERE clauses from stored procedures to identify filter patterns
+- FR-012.6: Recommend Cluster Keys based on frequent filter columns
+- FR-012.7: Suggest partitioning strategies for large tables (DATE-based clustering)
+- FR-012.8: Generate optimization report with storage and query performance impact estimates
+
+**Cluster Key Recommendation Logic:**
+```
+1. Parse all WHERE clauses in related stored procedures
+2. Identify most frequently filtered columns
+3. Prioritize columns with high cardinality
+4. Recommend cluster key: ALTER TABLE t CLUSTER BY (col1, col2)
+```
+
+**Input:** Transformed DDL, related stored procedures, optional statistics metadata  
+**Output:** Optimized DDL with recommendations, optimization report  
+**Error Handling:** Provide conservative mappings if optimization analysis fails
+
+---
+
 ## 4. Non-Functional Requirements
 
 ### 4.1 Performance Requirements
@@ -426,6 +554,7 @@ Requirements:
 │  • File Upload UI                                            │
 │  • Diff Viewer                                               │
 │  • Report Dashboard                                          │
+│  • Complexity Heatmaps                                       │
 └──────────────────────┬───────────────────────────────────────┘
                        │ HTTP/REST
 ┌──────────────────────▼───────────────────────────────────────┐
@@ -458,6 +587,19 @@ Requirements:
 │  │  • OpenAI/Vertex │  │  • Completable   │                  │
 │  └──────────────────┘  │    Future        │                  │
 │                        └──────────────────┘                  │
+│                                                              │
+│  ┌───────────────────────────────────────────────────────┐   │
+│  │         Data Migration Architect Modules              │   │
+│  ├───────────────────────────────────────────────────────┤   │
+│  │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐       │   │
+│  │ │ Data Gravity│ │ Validation  │ │ CDC Config  │       │   │
+│  │ │ Analyzer    │ │ Generator   │ │ Generator   │       │   │
+│  │ └─────────────┘ └─────────────┘ └─────────────┘       │   │
+│  │ ┌─────────────┐                                       │   │
+│  │ │ Intelligent │                                       │   │
+│  │ │ Optimizer   │                                       │   │
+│  │ └─────────────┘                                       │   │
+│  └───────────────────────────────────────────────────────┘   │
 └──────────────────────────────────────────────────────────────┘
                        │
 ┌──────────────────────▼───────────────────────────────────────┐
@@ -514,6 +656,75 @@ Requirements:
 - `AsyncFileProcessor`: Processes individual files
 - `JobRepository`: Persists job state (optional)
 
+#### 5.2.4 Data Gravity Analyzer
+
+**Component:** `com.schemasentinel.gravity.DataGravityAnalyzer`
+
+**Responsibilities:**
+- Analyze foreign key relationships across schemas
+- Calculate dependency depth and coupling metrics
+- Generate Data Gravity scores
+- Produce complexity heatmap data
+- Recommend migration waves
+
+**Key Classes:**
+- `GravityAnalyzer`: Main analysis orchestration
+- `DependencyGraphBuilder`: Constructs FK relationship graph
+- `GravityScoreCalculator`: Computes gravity scores
+- `HeatmapGenerator`: Generates visualization data
+- `WaveRecommender`: Suggests migration order
+
+#### 5.2.5 Validation Script Generator
+
+**Component:** `com.schemasentinel.validation.ValidationGenerator`
+
+**Responsibilities:**
+- Generate source database validation queries
+- Generate target Snowflake validation queries
+- Create row count and checksum validators
+- Produce comparison report templates
+
+**Key Classes:**
+- `ValidationGenerator`: Main generation orchestration
+- `SourceQueryBuilder`: Builds legacy DB validation queries
+- `SnowflakeQueryBuilder`: Builds Snowflake validation queries
+- `ChecksumCalculator`: Implements hash-based validation
+- `ComparisonReportBuilder`: Creates comparison templates
+
+#### 5.2.6 CDC Configuration Generator
+
+**Component:** `com.schemasentinel.cdc.CdcConfigGenerator`
+
+**Responsibilities:**
+- Generate Snowpipe DDL definitions
+- Create Stream and Task configurations
+- Produce merge statements for CDC processing
+- Generate staging table definitions
+
+**Key Classes:**
+- `CdcConfigGenerator`: Main CDC orchestration
+- `SnowpipeBuilder`: Generates Snowpipe DDL
+- `StreamTaskBuilder`: Creates Stream/Task definitions
+- `MergeStatementBuilder`: Builds merge logic
+- `StagingTableBuilder`: Designs landing zone tables
+
+#### 5.2.7 Intelligent Optimizer
+
+**Component:** `com.schemasentinel.optimizer.IntelligentOptimizer`
+
+**Responsibilities:**
+- Analyze data distribution metadata
+- Optimize data type mappings
+- Parse stored procedures for filter patterns
+- Recommend cluster keys and partitioning
+
+**Key Classes:**
+- `IntelligentOptimizer`: Main optimization orchestration
+- `DataDistributionAnalyzer`: Analyzes column statistics
+- `WhereClauseExtractor`: Parses filter patterns from SPs
+- `ClusterKeyRecommender`: Suggests cluster keys
+- `OptimizationReportBuilder`: Generates recommendations
+
 ### 5.3 Design Patterns
 
 | Pattern | Usage | Benefit |
@@ -523,6 +734,8 @@ Requirements:
 | **Factory Pattern** | Parser creation | Database-specific parser instantiation |
 | **Observer Pattern** | Job progress updates | Real-time UI updates |
 | **Template Method** | Migration workflow | Consistent processing pipeline |
+| **Builder Pattern** | CDC/Validation generation | Flexible configuration construction |
+| **Graph Pattern** | Data Gravity analysis | Dependency relationship modeling |
 
 ---
 
@@ -672,6 +885,141 @@ Events:
 - **DiffViewerComponent**: Side-by-side SQL comparison
 - **ReportViewerComponent**: Migration report visualization
 - **FileDownloadComponent**: Download transformed files
+- **HeatmapComponent**: Data Gravity complexity heatmap visualization
+- **ValidationDashboard**: Validation script status and results display
+
+### 7.4 Data Migration Architect API Endpoints
+
+#### 7.4.1 Data Gravity Analysis
+
+```
+POST /api/v1/migrations/{jobId}/gravity
+Content-Type: application/json
+
+Request:
+{
+  "tableMetadata": [
+    { "tableName": "ORDERS", "rowCount": 10000000, "sizeBytes": 5368709120 }
+  ]
+}
+
+Response:
+{
+  "jobId": "uuid",
+  "gravityScores": [
+    { "tableName": "ORDERS", "gravityScore": 8.5, "dependencies": 12 }
+  ],
+  "heatmapData": { ... },
+  "migrationWaves": [
+    { "wave": 1, "tables": ["CUSTOMERS", "PRODUCTS"] },
+    { "wave": 2, "tables": ["ORDERS", "ORDER_ITEMS"] }
+  ]
+}
+```
+
+#### 7.4.2 Generate Validation Scripts
+
+```
+POST /api/v1/migrations/{jobId}/validation
+Content-Type: application/json
+
+Request:
+{
+  "tables": ["ORDERS", "CUSTOMERS"],
+  "validationType": "FULL" | "ROW_COUNT_ONLY"
+}
+
+Response:
+{
+  "jobId": "uuid",
+  "validationScripts": [
+    {
+      "tableName": "ORDERS",
+      "sourceScript": "SELECT COUNT(*), SUM(HASH_AGG(...)) FROM ORDERS",
+      "targetScript": "SELECT COUNT(*), SUM(HASH(...)) FROM ORDERS"
+    }
+  ]
+}
+```
+
+#### 7.4.3 Download Validation Scripts
+
+```
+GET /api/v1/migrations/{jobId}/validation/download
+
+Response:
+Content-Type: application/zip
+[ZIP archive of validation scripts (Java + SQL)]
+```
+
+#### 7.4.4 Generate CDC Configuration
+
+```
+POST /api/v1/migrations/{jobId}/cdc
+Content-Type: application/json
+
+Request:
+{
+  "tables": ["ORDERS"],
+  "cdcFrequency": "NEAR_REALTIME" | "HOURLY" | "DAILY",
+  "warehouse": "MIGRATION_WH"
+}
+
+Response:
+{
+  "jobId": "uuid",
+  "cdcConfigurations": [
+    {
+      "tableName": "ORDERS",
+      "snowpipeDDL": "CREATE PIPE ...",
+      "streamDDL": "CREATE STREAM ...",
+      "taskDDL": "CREATE TASK ...",
+      "mergeDML": "MERGE INTO ..."
+    }
+  ]
+}
+```
+
+#### 7.4.5 Download CDC Configuration
+
+```
+GET /api/v1/migrations/{jobId}/cdc/download
+
+Response:
+Content-Type: application/zip
+[ZIP archive of CDC configuration scripts]
+```
+
+#### 7.4.6 Get Optimization Recommendations
+
+```
+POST /api/v1/migrations/{jobId}/optimize
+Content-Type: application/json
+
+Request:
+{
+  "includeClusterKeys": true,
+  "tableStatistics": [
+    { "tableName": "ORDERS", "columnStats": { ... } }
+  ]
+}
+
+Response:
+{
+  "jobId": "uuid",
+  "optimizations": [
+    {
+      "tableName": "ORDERS",
+      "originalDDL": "CREATE TABLE ...",
+      "optimizedDDL": "CREATE TABLE ... CLUSTER BY (ORDER_DATE)",
+      "recommendations": [
+        { "type": "CLUSTER_KEY", "column": "ORDER_DATE", "reason": "High filter frequency in SPs" }
+      ],
+      "estimatedImpact": { "storageSavings": "15%", "queryImprovement": "40%" }
+    }
+  ]
+}
+```
 
 ---
 

@@ -1,6 +1,6 @@
 # SchemaSentinel
 
-> An intelligent, automated migration engine for transitioning from legacy database systems to Snowflake Data Cloud
+> An intelligent, enterprise-grade **Data Migration Architect** platform for transitioning from legacy database systems to Snowflake Data Cloud
 
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.java.net/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -9,40 +9,54 @@
 
 ## 🎯 Overview
 
-**SchemaSentinel** is an enterprise-grade migration tool designed to accelerate the transition from legacy database systems (Oracle, SQL Server, PostgreSQL) to **Snowflake Data Cloud**. Unlike simple regex-based find-and-replace tools, SchemaSentinel leverages **Abstract Syntax Tree (AST) analysis** for deterministic code translation, augmented by a **Generative AI Agent** to handle complex, ambiguous edge cases.
+**SchemaSentinel** is an enterprise-grade **Data Migration Architect** platform designed to accelerate the transition from legacy database systems (Oracle, SQL Server, PostgreSQL) to **Snowflake Data Cloud**. Unlike simple regex-based code translators, SchemaSentinel approaches migration from a **data logistics perspective**—understanding that converting DDL is only 10% of real-world migration work.
+
+The platform leverages **Abstract Syntax Tree (AST) analysis** for deterministic code translation, augmented by a **Generative AI Agent** for complex edge cases, while providing comprehensive **data integrity validation**, **migration complexity assessment**, and **hybrid cutover strategies**.
 
 ### Key Differentiators
 
 - **AST-Based Translation**: Deterministic, accurate transformations using static analysis
 - **AI-Powered Fallback**: Intelligent handling of edge cases and proprietary syntax
+- **Data Gravity Assessment**: Migration complexity analysis with dependency heatmaps
+- **Data Integrity Validation**: Automated checksum and parity script generation
+- **CDC Integration**: Snowpipe/Streams/Tasks generation for hybrid migrations
+- **Intelligent Optimization**: Smart type mapping and cluster key suggestions for Snowflake
 - **Scalable Architecture**: Asynchronous processing for high-throughput enterprise migrations
-- **Visual Dashboard**: Side-by-side diff visualization for migration review
-- **Comprehensive Reporting**: Detailed migration reports with success rates and attention flags
+- **Visual Dashboard**: Side-by-side diff visualization with complexity heatmaps
 
 ## 🏗️ Architecture
 
 This project showcases a modern enterprise Java stack with robust design patterns:
 
 ```
-┌─────────────────┐
-│  React Dashboard │  ← Upload files, view diffs
-└────────┬────────┘
-         │
-┌────────▼─────────────────────┐
-│   Spring Boot 3.2 API        │
-│   ┌────────────────────────┐  │
-│   │  AST Parser Engine       │  │  ← JSqlParser (Deterministic)
-│   │  └─Visitor Pattern    │  │
-│   └────────────────────────┘  │
-│   ┌────────────────────────┐  │
-│   │  AI Agent (Fallback)   │  │  ← Spring AI (Probabilistic)
-│   │  └─LLM Integration     │  │
-│   └────────────────────────┘  │
-│   ┌────────────────────────┐  │
-│   │  Async Processing      │  │  ← CompletableFuture/@Async
-│   │  └─Event Queue         │  │
-│   └────────────────────────┘  │
-└───────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           React Dashboard                                    │
+│  ┌────────────────┐ ┌────────────────┐ ┌────────────────┐                   │
+│  │  File Upload   │ │  Diff Viewer   │ │ Complexity     │                   │
+│  │                │ │                │ │ Heatmaps       │                   │
+│  └────────────────┘ └────────────────┘ └────────────────┘                   │
+└───────────────────────────────┬─────────────────────────────────────────────┘
+                                │
+┌───────────────────────────────▼─────────────────────────────────────────────┐
+│                      Spring Boot 3.2 API                                    │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │  Core Migration Engine                                               │    │
+│  │  ┌────────────────────┐  ┌────────────────────┐                     │    │
+│  │  │  AST Parser Engine │  │  AI Agent (Fallback│                     │    │
+│  │  │  └─Visitor Pattern │  │  └─LLM Integration │                     │    │
+│  │  └────────────────────┘  └────────────────────┘                     │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │  Data Migration Architect Modules                                    │    │
+│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌─────────────┐ │    │
+│  │  │ Data Gravity │ │  Checksum &  │ │     CDC      │ │ Intelligent │ │    │
+│  │  │ Assessment   │ │   Parity     │ │ Integration  │ │ Optimizer   │ │    │
+│  │  └──────────────┘ └──────────────┘ └──────────────┘ └─────────────┘ │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │  Async Processing (CompletableFuture/@Async + Event Queue)          │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Technology Stack
@@ -90,6 +104,62 @@ Automated reporting includes:
 - ⚠️ **Attention Flags**: Items requiring manual review
 - 📝 **Audit Trail**: Complete history of transformations
 
+---
+
+## 🏛️ Data Migration Architect Features
+
+These capabilities demonstrate that schema translation is only 10% of real-world migration work—the other 90% is moving petabytes of data while maintaining integrity and minimizing downtime.
+
+### Feature D: Data Gravity Assessment Module
+
+A Data Architect must understand the cost and time of data movement.
+
+- **Metric Extraction**: Uses the AST parser to calculate "Data Gravity" scores—identifying massive tables (via metadata) with high numbers of foreign key dependencies that must be migrated together to maintain referential integrity.
+- **Complexity Heatmaps**: A report view in the React dashboard showing which schemas are "tightly coupled," proving understanding that data cannot always be moved in isolation.
+
+**Showcases**: Migration planning, dependency analysis, and enterprise-scale thinking.
+
+### Feature E: Automated Checksum & Parity Generator
+
+Architects are obsessed with data integrity.
+
+- **Validation Scripts**: For every table transformed from Oracle/SQL Server to Snowflake, SchemaSentinel outputs a pair of Java-based validation scripts:
+  - **Source Script**: Calculates row counts and aggregate checksums (e.g., `SUM(hash_numeric_columns)`) on the legacy DB.
+  - **Target Script**: Runs the equivalent Snowflake-optimized query.
+
+**The "Architect" Value**: Demonstrates that we don't just "move" data—we "certify" it.
+
+### Feature F: CDC Integration Strategy (Hybrid Migration Pipelines)
+
+A senior architect knows a "Big Bang" migration (shutting down the app to move data) is rarely possible.
+
+- **Stream-Based Architecture**: Automatically generates **Snowpipe** DDL and **Streams/Tasks** code for the target Snowflake environment.
+- **Hybrid Cutover**: Keeps the new Snowflake environment in sync with the legacy application during the "transition period."
+
+**Showcases**: Real-world migration experience, operational continuity, and zero-downtime thinking.
+
+### Feature G: Intelligent Data Type Optimization
+
+Legacy systems often have inefficient types (e.g., using `CLOB` for everything). A Data Architect optimizes for the destination.
+
+- **Smart Mapping**: Instead of simple `CLOB` → `VARCHAR` mapping, adds logic that checks actual data distribution (if metadata is provided).
+- **Snowflake Optimization**: Suggests **Cluster Keys** for large tables based on `WHERE` clauses found in legacy Stored Procedures parsed by JSqlParser.
+
+**Showcases**: Designing for Snowflake's unique **micro-partitioning** architecture rather than just copying legacy designs.
+
+---
+
+## 📊 Architecture Comparison
+
+| Code Translator Approach | SchemaSentinel "Architect" Approach |
+|--------------------------|-------------------------------------|
+| **Input**: SQL Files | **Input**: SQL Files + Statistics Metadata |
+| **Process**: AST Translation | **Process**: AST + Data Volume Analysis |
+| **Output**: Snowflake SQL | **Output**: SQL + Validation Logic + CDC Config |
+| **Goal**: Code Parity | **Goal**: Operational Cutover & Data Integrity |
+
+---
+
 ## 📋 Supported Sources
 
 - **Oracle**: PL/SQL, Oracle-specific DDL
@@ -103,9 +173,11 @@ This project demonstrates expertise in:
 | Requirement | Demonstration |
 |------------|---------------|
 | **Java Expertise** | Modern Java 21/Spring Boot; complex object manipulation (ASTs) beyond CRUD |
-| **Migration Domain** | Directly tackles core business problem: legacy → Snowflake conversion |
+| **Migration Domain** | Directly tackles core business problem: legacy → Snowflake conversion with data integrity guarantees |
 | **Problem Solving** | Elegant "90/10 rule" implementation (90% deterministic, 10% AI-assisted) |
-| **Seniority** | Architecture decisions (async processing), DevOps (Docker), DX (React UI) |
+| **Data Architecture** | Data Gravity assessment, validation scripts, and cluster key optimization demonstrate Fortune 500-level migration leadership |
+| **Operational Excellence** | Hybrid CDC pipelines and checksum validation prove zero-downtime, certified cutover expertise |
+| **Seniority** | Architecture decisions (async processing, CDC), DevOps (Docker), DX (React UI with complexity heatmaps) |
 
 ## 🛠️ Getting Started
 
@@ -151,10 +223,14 @@ schema-sentinel/
 │   │   ├── main/
 │   │   │   ├── java/
 │   │   │   │   └── com/schemasentinel/
-│   │   │   │       ├── parser/      # AST parsing engine
-│   │   │   │       ├── ai/          # AI agent integration
-│   │   │   │       ├── service/     # Business logic
-│   │   │   │       └── api/         # REST controllers
+│   │   │   │       ├── parser/         # AST parsing engine
+│   │   │   │       ├── ai/             # AI agent integration
+│   │   │   │       ├── gravity/        # Data Gravity assessment
+│   │   │   │       ├── validation/     # Checksum & parity scripts
+│   │   │   │       ├── cdc/            # CDC/Snowpipe generation
+│   │   │   │       ├── optimizer/      # Intelligent type optimization
+│   │   │   │       ├── service/        # Business logic
+│   │   │   │       └── api/            # REST controllers
 │   │   │   └── resources/
 │   │   └── test/
 │   └── pom.xml
@@ -165,7 +241,8 @@ schema-sentinel/
 │   │   └── App.tsx
 │   └── package.json
 ├── doc/
-│   └── briefing.md
+│   ├── briefing.md
+│   └── schema-sentinel-srd.md
 └── README.md
 ```
 
@@ -185,4 +262,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**Built with ❤️ for seamless database migrations**
+**Built with ❤️ for seamless, certified enterprise database migrations**
+
